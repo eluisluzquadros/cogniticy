@@ -1,0 +1,32 @@
+# Parâmetros padrão para Skyvidya Cognicity
+
+building:
+  min_unit_area: 50.0         # Área mínima da unidade em m²
+  unit_width: 5.0             # Largura mínima da unidade em metros
+  use_corner: false
+  corner_side_ratio: 0.3
+  corner_thickness_ratio: 0.1
+  use_grid_based_generation: true
+  h3_resolution: 10
+
+optimization:
+  use_ai_optimization: true
+  simplify_tolerance: 0.5
+  compacity_factor: 0.95
+
+export:
+  output_format: geojson
+  filename_template: "footprint_{lot_id}.geojson"
+
+validation:
+  allow_invalid: false
+  apply_setbacks: true
+  setback_front: 1.5
+  setback_back: 1.5
+  setback_side: 1.0
+
+mcp:
+  enable_agents: true
+  agent_ids:
+    - agent_slab_refiner
+    - agent_corner_refiner

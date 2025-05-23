@@ -1,0 +1,31 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-43.2001, -22.9001],
+            [-43.2001, -22.8997],
+            [-43.1996, -22.8997],
+            [-43.1996, -22.9001],
+            [-43.2001, -22.9001]
+          ]
+        ]
+      },
+      "properties": {
+        "lot_id": "RJ001",
+        "max_height": 30,
+        "max_far": 3.0,
+        "lot_coverage_max": 0.7,
+        "floor_height": 3,
+        "min_setback_start_floor": 4,
+        "back_setback_percent": 0.18,
+        "min_side_setback": 1.5,
+        "min_floor_area": 50
+      }
+    }
+  ]
+}
