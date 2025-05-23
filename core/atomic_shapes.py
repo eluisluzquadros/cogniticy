@@ -1,59 +1,71 @@
-from shapely.geometry import Polygon
-from shapely.ops import unary_union
+# cogniticy/core/atomic_shapes.py
 
-class Slab:
+from typing import Union
+from shapely.geometry import Point, LineString, Polygon
+import logging
+
+logger = logging.getLogger(__name__)
+
+class AtomicShape:
     """
-    Representa um retângulo simples (Slab) definido por comprimento e largura.
+    Classe base para formas atômicas usadas na modelagem generativa.
     """
-    def __init__(self, length: float, width: float):
-        self.length = length
-        self.width = width
+    def __init__(self, geometry: Union[Point, LineString, Polygon], shape_type: str):
+        self.geometry = geometry
+        self.shape_type = shape_type
 
-    def to_polygon(self) -> Polygon:
-        """
-        Converte os parâmetros do Slab em um polígono Shapely.
-        """
-        coords = [
-            (0.0, 0.0),
-            (self.length, 0.0),
-            (self.length, self.width),
-            (0.0, self.width)
-        ]
-        return Polygon(coords)
+    def __repr__(self) -> str:
+        geom_wkt = "N/A"
+        if self.geometry:
+            try:
+                geom_wkt = self.geometry.wkt[:50] + "..." if len(self.geometry.wkt) > 50 else self.geometry.wkt
+            except Exception: # Em caso de geometria inválida que não tem wkt
+                geom_wkt = "[Geometria Inválida]"
+        return f"{self.shape_type}({geom_wkt})"
 
-
-class Corner:
+class Slab(AtomicShape):
     """
-    Representa uma forma em 'L' (Corner) definida por side_length e thickness.
+    Representa um 'Slab', uma forma linear ou uma área retangular estreita.
     """
-    def __init__(self, side_length: float, thickness: float):
-        self.side_length = side_length
-        self.thickness = thickness
+    def __init__(self, geometry: Union[LineString, Polygon]):
+        super().__init__(geometry, "Slab")
+        if not isinstance(geometry, (LineString, Polygon)):
+            raise ValueError("A geometria do Slab deve ser LineString ou Polygon.")
 
-    def to_polygon(self) -> Polygon:
-        """
-        Gera um polígono Shapely em formato de 'L', unindo dois retângulos.
-        """
-        # Braço horizontal
-        rect1 = Polygon([
-            (0.0, 0.0),
-            (self.side_length, 0.0),
-            (self.side_length, self.thickness),
-            (0.0, self.thickness)
-        ])
-        # Braço vertical
-        rect2 = Polygon([
-            (0.0, 0.0),
-            (self.thickness, 0.0),
-            (self.thickness, self.side_length),
-            (0.0, self.side_length)
-        ])
-        return unary_union([rect1, rect2])
+    @property
+    def length(self) -> float:
+        if isinstance(self.geometry, LineString):
+            return self.geometry.length
+        elif isinstance(self.geometry, Polygon) and self.geometry.exterior:
+            # Para um polígono, pode ser o comprimento da borda mais longa ou perímetro/2.
+            # Usando perímetro/2 como uma aproximação genérica de "comprimento".
+            return self.geometry.exterior.length / 2 
+        return 0.0
 
-
-def compose_shapes(shapes: list) -> Polygon:
+class Corner(AtomicShape):
     """
-    Compoe diversas formas atômicas (Slab, Corner) unindo-as em um único polígono.
+    Representa um 'Corner', um ponto ou vértice significativo na modelagem.
     """
-    polygons = [shape.to_polygon() for shape in shapes]
-    return unary_union(polygons)
+    def __init__(self, geometry: Point):
+        super().__init__(geometry, "Corner")
+        if not isinstance(geometry, Point):
+            raise ValueError("A geometria do Corner deve ser um Point.")
+
+    @property
+    def x(self) -> float:
+        return self.geometry.x if isinstance(self.geometry, Point) else 0.0
+
+    @property
+    def y(self) -> float:
+        return self.geometry.y if isinstance(self.geometry, Point) else 0.0
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    logger.info("--- Testando Formas Atômicas ---")
+    my_corner = Corner(Point(10, 20))
+    logger.info(f"Corner criado: {my_corner}, Coords: ({my_corner.x}, {my_corner.y})")
+    my_slab_line = Slab(LineString([(0, 0), (0, 50)]))
+    logger.info(f"Slab (linha) criado: {my_slab_line}, Comprimento: {my_slab_line.length}")
+    my_slab_poly = Slab(Polygon([(0,0), (1,0), (1,10), (0,10)]))
+    logger.info(f"Slab (polígono) criado: {my_slab_poly}, Comprimento (aprox): {my_slab_poly.length}")
+    logger.info("--- Testes de Formas Atômicas Concluídos ---")

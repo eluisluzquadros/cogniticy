@@ -1,32 +1,80 @@
-# Parâmetros padrão para Skyvidya Cognicity
+# Arquivo de Configuração Padrão para CogniCity
+# Este arquivo define os parâmetros default para as simulações.
+# Os valores podem ser sobrescritos por dados específicos do lote ou configurações da pipeline.
 
-building:
-  min_unit_area: 50.0         # Área mínima da unidade em m²
-  unit_width: 5.0             # Largura mínima da unidade em metros
-  use_corner: false
-  corner_side_ratio: 0.3
-  corner_thickness_ratio: 0.1
-  use_grid_based_generation: true
-  h3_resolution: 10
+# I. Parâmetros Urbanísticos – Identificação do Zoneamento (Exemplos/Placeholders)
+zoning_parameters:
+  numlote: "LOTE_PADRAO" 
+  zot: "ZONA_USO_GERAL"  
+  codigo: "ZG_001"       
+  nome: "BAIRRO_MODELO"  # Nome do Bairro (geralmente vem do lote)
+  obs: ""                
+  ga: "OCUPACAO_LIVRE"   
+  conceito: "PADRAO"     
+  id_quarterirao: "Q_001" 
 
-optimization:
-  use_ai_optimization: true
-  simplify_tolerance: 0.5
-  compacity_factor: 0.95
+# II. Parâmetros Urbanísticos - Normativos
+normative_parameters:
+  max_height: 60.0            
+  max_far: 2.0                 
+  max_lot_coverage: 0.6        
+  # floor_height: 3.0            # Removido, usar gf_floor_height e uf_floor_height
+  gf_floor_height: 4.0         
+  uf_floor_height: 3.0         
+  min_front_setback: 5.0       
+  min_back_setback: 3.0        
+  min_side_setback: 1.5        
+  min_setback_start_floor: 3   
+  back_setback_percent: 0.20   # Percentual fixo (do GeoJSON do lote) x altura acumulada ATÉ O PAVIMENTO ANTERIOR.
+  slenderness_ratio: null      
 
-export:
-  output_format: geojson
-  filename_template: "footprint_{lot_id}.geojson"
+# III. Parâmetros Arquitetônicos e Construtivos
+architectural_parameters:
+  min_floor_area: 50.0         
+  min_unit_area: 30.0          
+  target_unit_area: 60.0       
+  num_units_target: null       
+  min_unit_width: 3.0          
+  min_patios_dimension: 4.0    
+  core_area_fraction: 0.15     
+  access_width: 1.2            
+  target_efficiency: 0.80      
 
-validation:
-  allow_invalid: false
-  apply_setbacks: true
-  setback_front: 1.5
-  setback_back: 1.5
-  setback_side: 1.0
+# IV. Parâmetros de Estacionamento
+parking_parameters:
+  parking_required: true            
+  parking_calculation_type: "per_unit" 
+  parking_ratio_residential: 1.0     
+  parking_ratio_commercial: 0.5      
+  commercial_area_for_parking_ratio: 100.0 
+  parking_type: "subsolo"           
+  parking_area_per_slot: 25.0        
+  max_parking_ratio: null            
+  parking_levels_allowed: 2          
+  ramp_area_per_floor_fraction: 0.10 
 
-mcp:
-  enable_agents: true
-  agent_ids:
-    - agent_slab_refiner
-    - agent_corner_refiner
+# V. Parâmetros Estratégicos / Computacionais
+modeling_strategy:
+  h3_resolution: 10                
+  modeling_mode: "advanced"        # "basic" (apenas ortogonal) ou "advanced" (ortogonal + formas compostas)
+  include_parking_in_far: false    
+  optimization_objective: "maximize_far_within_height" # "maximize_far_within_height", "maximize_units", "maximize_efficiency"
+  grid_search_parameters:          
+    shape_ratio_steps: [0.3, 0.5, 0.7] 
+    orientation_steps: [0, 90, 180, 270] 
+
+# VI. Parâmetros de Simulação e Saída
+simulation_parameters:
+  project_name: "cognicity_output"       
+  input_lots_geojson: "data/meus_lotes.geojson" 
+  input_block_faces_geojson: "data/minhas_faces.geojson" # Arquivo separado para faces dos lotes
+  faces_lot_id_column: "numlote" # Nome da coluna no arquivo de faces para juntar com lotes
+  faces_type_column: "tipo"      # Nome da coluna no arquivo de faces que indica o tipo (frente, fundos, lateral)
+  output_directory: "output/"      
+  output_crs: "EPSG:4326" # WGS84 como padrão para saídas GeoJSON
+  default_processing_crs: "EPSG:31982" # Ex: SIRGAS 2000 / UTM zone 22S - para cálculos métricos internos
+  lot_id_column_name: "numlote" # Nome da coluna de ID no arquivo de lotes
+  log_level: "INFO"                
+  generate_visualizations: false    
+  visualization_library: "plotly"  
+
